@@ -7,7 +7,7 @@ import java.net.InetAddress
 fun InetAddress.asSocketAddressText(port: Int): String {
     return when (this) {
         is Inet6Address ->
-            "[${numericToTextFormat(this.address)}]:$port"
+            "[${numericToTextFormat(this)}]:$port"
         is Inet4Address ->
             "${this.hostAddress}:$port"
         else -> throw IllegalArgumentException("Unsupported Inet type ${this.javaClass}")
@@ -16,7 +16,8 @@ fun InetAddress.asSocketAddressText(port: Int): String {
 
 private const val INT16SZ = 2
 private const val INADDRSZ = 16
-private fun numericToTextFormat(src: ByteArray): String {
+private fun numericToTextFormat(address: Inet6Address): String {
+    var src = address.getAddress()
     val sb = StringBuilder(39)
     for (i in 0 until INADDRSZ / INT16SZ) {
         sb.append(
@@ -28,6 +29,10 @@ private fun numericToTextFormat(src: ByteArray): String {
         if (i < INADDRSZ / INT16SZ - 1) {
             sb.append(":")
         }
+    }
+    if (address.getScopeId() > 0){
+        sb.append("%")
+        sb.append(address.getScopeId())
     }
     return sb.toString()
 }
